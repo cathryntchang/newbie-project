@@ -25,9 +25,11 @@ const setupCompany = async () => {
     // Create a new document in the companies collection
     const companyDoc = doc(companiesRef);
     
-    // Set the company data (without surveys array)
+    // Set the company data with email and password
     await setDoc(companyDoc, {
       name: 'Daymi',
+      email: 'admin@daymi.com',
+      password: 'daymi123', // In a real app, this should be hashed
       id: companyDoc.id
     });
 
