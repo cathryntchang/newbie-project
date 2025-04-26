@@ -26,22 +26,88 @@ export const createCompany = async (companyData: {
 
 // Survey functions
 export const createSurvey = async (companyId: string, surveyData: {
+  title: string;
   questions: string[];
-  image?: string;
   peopleInvited: string[];
 }) => {
-  const companyRef = doc(companiesRef, companyId);
-  const surveysRef = collection(companyRef, 'surveys');
-  const surveyRef = doc(surveysRef);
-  
-  await setDoc(surveyRef, {
-    ...surveyData,
-    id: surveyRef.id,
-    gptSummary: '',
-    answers: []
-  });
-  
-  return surveyRef.id;
+  try {
+    // Get reference to the company's surveys collection
+    const companyRef = doc(companiesRef, companyId);
+    const surveysRef = collection(companyRef, 'surveys');
+    const surveyRef = doc(surveysRef);
+    const surveyId = surveyRef.id;
+
+    // Create the main survey document
+    await setDoc(surveyRef, {
+      id: surveyId,
+      title: surveyData.title,
+      createdAt: new Date().toISOString()
+    });
+
+    // Create questions collection and add each question as a document
+    const questionsRef = collection(surveyRef, 'questions');
+    const questionPromises = surveyData.questions.map((question, index) => {
+      const questionDoc = doc(questionsRef);
+      return setDoc(questionDoc, {
+        id: questionDoc.id,
+        questionText: question,
+        order: index + 1
+      });
+    });
+    await Promise.all(questionPromises);
+
+    // Create invites document to store invited people
+    const invitesRef = doc(surveyRef, 'invites');
+    await setDoc(invitesRef, {
+      people: surveyData.peopleInvited
+    });
+
+    // Create answers collection (initially empty)
+    const answersRef = doc(surveyRef, 'answers');
+    await setDoc(answersRef, {
+      responses: {}  // Will store responses by username
+    });
+
+    // Add survey ID to company's surveys array
+    await updateDoc(companyRef, {
+      surveys: arrayUnion(surveyId)
+    });
+
+    return surveyId;
+  } catch (error) {
+    console.error('Error creating survey:', error);
+    throw error;
+  }
+};
+
+// Function to add a response to a survey
+export const addSurveyResponse = async (
+  companyId: string,
+  surveyId: string,
+  responseData: {
+    username: string;
+    responses: { [questionId: string]: string }
+  }
+) => {
+  try {
+    const surveyRef = doc(companiesRef, companyId, 'surveys', surveyId);
+    const answersRef = doc(surveyRef, 'answers');
+
+    // Get current answers document
+    const answersDoc = await getDoc(answersRef);
+    const currentResponses = answersDoc.exists() ? answersDoc.data().responses : {};
+
+    // Add or update the user's responses
+    await updateDoc(answersRef, {
+      responses: {
+        ...currentResponses,
+        [responseData.username]: responseData.responses
+      }
+    });
+  } catch (error) {
+    console.error('Error adding survey response:', error);
+    throw error;
+  }
 };
 
 // User functions
@@ -57,18 +123,81 @@ export const createUser = async (userData: {
   return userRef.id;
 };
 
-export const addSurveyAnswer = async (
-  companyId: string,
-  surveyId: string,
-  answerData: {
-    name: string;
-    answers: { [key: string]: string };
+// Add this function to check if company exists
+export const getCompanyById = async (companyId: string) => {
+  try {
+    const companyRef = doc(db, 'companies', companyId);
+    const companyDoc = await getDoc(companyRef);
+    if (!companyDoc.exists()) {
+      throw new Error('Company not found');
+    }
+    return companyDoc.data();
+  } catch (error) {
+    console.error('Error getting company:', error);
+    throw error;
   }
+};
+
+export const createNewSurvey = async (
+  companyId: string,
+  title: string,
+  invitedUsers: string[],
+  questions: { questionText: string, order: number }[]
 ) => {
-  const surveyRef = doc(companiesRef, companyId, 'surveys', surveyId);
-  await updateDoc(surveyRef, {
-    answers: arrayUnion(answerData)
-  });
+  try {
+    // First check if company exists
+    const company = await getCompanyById(companyId);
+    if (!company) {
+      throw new Error('Company not found');
+    }
+
+    // Create a new survey document
+    const surveyDoc = doc(collection(db, `companies/${companyId}/surveys`));
+    const surveyId = surveyDoc.id;
+
+    // Set the main survey data
+    await setDoc(surveyDoc, {
+      id: surveyId,
+      title,
+      invitedUsers,
+      createdAt: new Date().toISOString()
+    });
+
+    // Add questions as separate documents
+    for (const question of questions) {
+      const questionDoc = doc(collection(db, `companies/${companyId}/surveys/${surveyId}/questions`));
+      await setDoc(questionDoc, {
+        id: questionDoc.id,
+        ...question
+      });
+    }
+
+    // Create metadata documents
+    await setDoc(
+      doc(db, `companies/${companyId}/surveys/${surveyId}/metadata`, 'invites'),
+      {
+        people: invitedUsers
+      }
+    );
+
+    await setDoc(
+      doc(db, `companies/${companyId}/surveys/${surveyId}/metadata`, 'answers'),
+      {
+        responses: {}
+      }
+    );
+
+    // Update company's surveys array - make sure to initialize if it doesn't exist
+    const companyRef = doc(db, 'companies', companyId);
+    await updateDoc(companyRef, {
+      surveys: arrayUnion(surveyId)
+    });
+
+    return surveyId;
+  } catch (error) {
+    console.error('Error creating survey:', error);
+    throw error;
+  }
 };
 
 // Export db instance for direct use if needed
