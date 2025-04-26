@@ -1,0 +1,141 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  Platform,
+  Dimensions,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  ScrollView,
+  Alert,
+} from "react-native";
+import { StyledInput } from "./StyledInput";
+import { StyledButton } from "./StyledButton";
+import { router } from "expo-router";
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
+
+const { width } = Dimensions.get("window");
+const isSmallDevice = width < 375;
+
+export const UserLoginScreen = () => {
+  const [username, setUsername] = useState("");
+
+  const handleContinue = async () => {
+    if (!username.trim()) {
+      Alert.alert(
+        "Missing Information",
+        "Please enter your username.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where("username", "==", username.trim()));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        // For now, route to survey-home. This will be updated when the user-specific screen is created
+        router.push("/survey-home");
+      } else {
+        Alert.alert(
+          "Invalid Username",
+          "Please enter a valid username (Danica, Christy, or Cathryn).",
+          [{ text: "OK" }]
+        );
+      }
+    } catch (error) {
+      console.error("Error checking username:", error);
+      Alert.alert(
+        "Error",
+        "An error occurred while checking the username. Please try again.",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            <Image
+              source={require('../../assets/images/metric_logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={styles.title}>User Login</Text>
+            <Text style={styles.subtitle}>Sign in to your user account</Text>
+            
+            <StyledInput
+              placeholder="Username"
+              value={username}
+              onChangeText={setUsername}
+            />
+
+            <View style={styles.buttonContainer}>
+              <StyledButton title="Continue" onPress={handleContinue} />
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F5F7FA",
+  },
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  content: {
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+  },
+  logo: {
+    width: 104,
+    height: 104,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: isSmallDevice ? 32 : 36,
+    fontWeight: "700",
+    color: "#000000",
+    marginBottom: 8,
+    fontFamily: Platform.select({
+      ios: "System",
+      android: "Roboto",
+    }),
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 32,
+    fontFamily: Platform.select({
+      ios: "System",
+      android: "Roboto",
+    }),
+  },
+  buttonContainer: {
+    marginTop: 20,
+    width: "100%",
+  },
+}); 
