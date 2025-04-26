@@ -50,7 +50,10 @@ export const HomeScreen = () => {
               </Text>
 
               <View style={styles.buttonContainer}>
-                <StyledButton title="Login as a User" />
+                <StyledButton 
+                  title="Login as a User" 
+                  onPress={() => router.push("/user-login")}
+                />
                 <StyledButton 
                   title="Company" 
                   onPress={() => router.push("/company-login")}

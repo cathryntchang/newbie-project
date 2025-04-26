@@ -20,38 +20,39 @@ import { db } from '../firebase/firebase';
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
 
-export const CompanyLoginScreen = () => {
-  const [companyName, setCompanyName] = useState("");
+export const UserLoginScreen = () => {
+  const [username, setUsername] = useState("");
 
   const handleContinue = async () => {
-    if (!companyName.trim()) {
+    if (!username.trim()) {
       Alert.alert(
         "Missing Information",
-        "Please enter a company name.",
+        "Please enter your username.",
         [{ text: "OK" }]
       );
       return;
     }
 
     try {
-      const companiesRef = collection(db, 'companies');
-      const q = query(companiesRef, where("name", "==", companyName.trim()));
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where("username", "==", username.trim()));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
+        // For now, route to survey-home. This will be updated when the user-specific screen is created
         router.push("/survey-home");
       } else {
         Alert.alert(
-          "Invalid Company Name",
-          "Please enter the correct company name.",
+          "Invalid Username",
+          "Please enter a valid username (Danica, Christy, or Cathryn).",
           [{ text: "OK" }]
         );
       }
     } catch (error) {
-      console.error("Error checking company name:", error);
+      console.error("Error checking username:", error);
       Alert.alert(
         "Error",
-        "An error occurred while checking the company name. Please try again.",
+        "An error occurred while checking the username. Please try again.",
         [{ text: "OK" }]
       );
     }
@@ -73,13 +74,13 @@ export const CompanyLoginScreen = () => {
               style={styles.logo}
               resizeMode="contain"
             />
-            <Text style={styles.title}>Company Login</Text>
-            <Text style={styles.subtitle}>Sign in to your company account</Text>
+            <Text style={styles.title}>User Login</Text>
+            <Text style={styles.subtitle}>Sign in to your user account</Text>
             
             <StyledInput
-              placeholder="Company Name"
-              value={companyName}
-              onChangeText={setCompanyName}
+              placeholder="Username"
+              value={username}
+              onChangeText={setUsername}
             />
 
             <View style={styles.buttonContainer}>
@@ -137,4 +138,4 @@ const styles = StyleSheet.create({
     marginTop: 20,
     width: "100%",
   },
-});
+}); 

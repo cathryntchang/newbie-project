@@ -6,6 +6,7 @@
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "setup-company": "node ./scripts/setup-company.js",
+    "setup-users": "node ./scripts/setup-users.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
