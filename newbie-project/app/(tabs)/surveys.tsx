@@ -1,5 +1,5 @@
-import { SurveyHomeScreen } from "../screens/SurveyHomeScreen";
+import CompanyHomeScreen from "../screens/CompanyHomeScreen";
 
 export default function SurveysScreen() {
-  return <SurveyHomeScreen />;
+  return <CompanyHomeScreen />;
 }

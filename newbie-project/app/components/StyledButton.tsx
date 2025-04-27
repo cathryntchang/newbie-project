@@ -4,15 +4,19 @@ import { TouchableOpacity, Text, StyleSheet, Dimensions } from "react-native";
 interface StyledButtonProps {
   title: string;
   onPress?: () => void;
+  style?: object;
+  textStyle?: object;
 }
 
 export const StyledButton: React.FC<StyledButtonProps> = ({
   title,
   onPress,
+  style,
+  textStyle,
 }) => {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Text style={styles.buttonText}>{title}</Text>
+    <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
+      <Text style={[styles.buttonText, textStyle]}>{title}</Text>
     </TouchableOpacity>
   );
 };

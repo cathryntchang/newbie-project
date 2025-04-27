@@ -10,7 +10,7 @@ import {
   ScrollView,
   StatusBar,
 } from "react-native";
-import { StyledButton } from "./StyledButton";
+import { StyledButton } from "../components/StyledButton";
 import { router } from "expo-router";
 
 const { width, height } = Dimensions.get("window");
@@ -51,11 +51,15 @@ export const HomeScreen = () => {
 
               <View style={styles.buttonContainer}>
                 <StyledButton 
-                  title="Login as a User" 
+                  title="User" 
+                  style={styles.userButton}
+                  textStyle={styles.userButtonText}
                   onPress={() => router.push("/user-login")}
                 />
                 <StyledButton 
                   title="Company" 
+                  style={styles.companyButton}
+                  textStyle={styles.companyButtonText}
                   onPress={() => router.push("/company-login")}
                 />
               </View>
@@ -116,7 +120,7 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: isSmallDevice ? 32 : 38,
     fontWeight: "700",
-    color: "#000000",
+    color: "#232B3A",
     fontFamily: Platform.select({
       ios: "System",
       android: "Roboto",
@@ -125,7 +129,8 @@ const styles = StyleSheet.create({
     letterSpacing: isIOS ? -0.5 : 0,
   },
   highlightText: {
-    color: "rgba(68,99,136,1)",
+    color: "#6C4DFF",
+    fontWeight: "700",
   },
   smallIcon: {
     aspectRatio: 1,
@@ -137,7 +142,7 @@ const styles = StyleSheet.create({
     marginTop: 11,
     fontSize: isSmallDevice ? 14 : 15,
     lineHeight: 25,
-    color: "rgba(111, 107, 107, 1)",
+    color: "#6B6B6B",
     alignSelf: "stretch",
     fontFamily: Platform.select({
       ios: "System",
@@ -148,13 +153,35 @@ const styles = StyleSheet.create({
     marginTop: 15,
     width: "100%",
     gap: 14,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
   },
-  button: {
-    borderRadius: 15,
+  userButton: {
+    backgroundColor: "#4B2BAE",
+    borderRadius: 14,
+    paddingVertical: 16,
     paddingHorizontal: 24,
-    paddingVertical: isIOS ? 15 : 16, // Slight adjustment for iOS
+    marginRight: 8,
+    width: 150,
+  },
+  userButtonText: {
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 16,
-    color: "#FFFFFF",
+  },
+  companyButton: {
+    backgroundColor: "#E6E0F8",
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    marginLeft: 8,
+    width: 150,
+  },
+  companyButtonText: {
+    color: "#3B217F",
+    fontWeight: "600",
+    fontSize: 16,
   },
   bottomImage: {
     width: "100%",

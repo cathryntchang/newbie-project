@@ -65,14 +65,18 @@ export default function UserHome() {
             ))}
           </View>
           {companies.map(company => (
-            <View key={company.id} style={styles.companyCard}>
+            <TouchableOpacity
+              key={company.id}
+              style={styles.companyCard}
+              onPress={() => router.push('/chat')}
+            >
               <View style={styles.companyLogoPlaceholder} />
               <View style={styles.companyInfo}>
                 <Text style={styles.companyName}>{company.name}</Text>
                 <Text style={styles.companyDate}>{company.date}</Text>
               </View>
               <Text style={styles.companyDuration}>{company.duration}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       </ScrollView>

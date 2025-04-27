@@ -74,7 +74,7 @@ export const CompanyLoginScreen = () => {
               style={styles.logo}
               resizeMode="contain"
             />
-            <Text style={styles.title}>Company Login</Text>
+            <Text style={styles.title}>Login to Metric</Text>
             <Text style={styles.subtitle}>Sign in to your company account</Text>
             
             <StyledInput
@@ -84,7 +84,7 @@ export const CompanyLoginScreen = () => {
             />
 
             <View style={styles.buttonContainer}>
-              <StyledButton title="Continue" onPress={handleContinue} />
+              <StyledButton title="LOG IN" onPress={handleContinue} />
             </View>
           </View>
         </ScrollView>

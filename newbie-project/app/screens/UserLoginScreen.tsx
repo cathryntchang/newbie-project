@@ -12,8 +12,8 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
-import { StyledInput } from "./StyledInput";
-import { StyledButton } from "./StyledButton";
+import { StyledInput } from "../components/StyledInput";
+import { StyledButton } from "../components/StyledButton";
 import { router } from "expo-router";
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
@@ -41,7 +41,7 @@ export const UserLoginScreen = () => {
 
       if (!querySnapshot.empty) {
         // Navigate to user home page after successful login
-        router.replace("/(auth)/user-home");
+        router.replace("../screens/UserHomeScreen");
       } else {
         Alert.alert(
           "Invalid Username",
@@ -75,7 +75,7 @@ export const UserLoginScreen = () => {
               style={styles.logo}
               resizeMode="contain"
             />
-            <Text style={styles.title}>User Login</Text>
+            <Text style={styles.title}>Login to Metric</Text>
             <Text style={styles.subtitle}>Sign in to your user account</Text>
             
             <StyledInput
@@ -85,7 +85,7 @@ export const UserLoginScreen = () => {
             />
 
             <View style={styles.buttonContainer}>
-              <StyledButton title="Continue" onPress={handleContinue} />
+              <StyledButton title="LOG IN" onPress={handleContinue} />
             </View>
           </View>
         </ScrollView>
