@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 import { StyledInput } from "./StyledInput";
 import { StyledButton } from "./StyledButton";
@@ -137,5 +138,14 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 20,
     width: "100%",
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#446388',
+    fontWeight: '500',
   },
 }); 
