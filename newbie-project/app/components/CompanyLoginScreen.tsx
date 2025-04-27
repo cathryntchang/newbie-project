@@ -9,15 +9,53 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   ScrollView,
+  Alert,
 } from "react-native";
 import { StyledInput } from "./StyledInput";
 import { StyledButton } from "./StyledButton";
+import { router } from "expo-router";
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
 
 export const CompanyLoginScreen = () => {
   const [companyName, setCompanyName] = useState("");
+
+  const handleContinue = async () => {
+    if (!companyName.trim()) {
+      Alert.alert(
+        "Missing Information",
+        "Please enter a company name.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    try {
+      const companiesRef = collection(db, 'companies');
+      const q = query(companiesRef, where("name", "==", companyName.trim()));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        router.push("/survey-home");
+      } else {
+        Alert.alert(
+          "Invalid Company Name",
+          "Please enter the correct company name.",
+          [{ text: "OK" }]
+        );
+      }
+    } catch (error) {
+      console.error("Error checking company name:", error);
+      Alert.alert(
+        "Error",
+        "An error occurred while checking the company name. Please try again.",
+        [{ text: "OK" }]
+      );
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -31,20 +69,21 @@ export const CompanyLoginScreen = () => {
         >
           <View style={styles.content}>
             <Image
-              source={{
-                uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/6b16b1e43faf415579184dcf15bcdce63dd7c87e?placeholderIfAbsent=true",
-              }}
+              source={require('../../assets/images/metric_logo.png')}
               style={styles.logo}
               resizeMode="contain"
             />
-            <Text style={styles.title}>Login to Metric</Text>
+            <Text style={styles.title}>Company Login</Text>
+            <Text style={styles.subtitle}>Sign in to your company account</Text>
+            
             <StyledInput
               placeholder="Company Name"
               value={companyName}
               onChangeText={setCompanyName}
             />
+
             <View style={styles.buttonContainer}>
-              <StyledButton title="Continue" onPress={() => {}} />
+              <StyledButton title="Continue" onPress={handleContinue} />
             </View>
           </View>
         </ScrollView>
@@ -79,7 +118,16 @@ const styles = StyleSheet.create({
     fontSize: isSmallDevice ? 32 : 36,
     fontWeight: "700",
     color: "#000000",
-    marginBottom: 40,
+    marginBottom: 8,
+    fontFamily: Platform.select({
+      ios: "System",
+      android: "Roboto",
+    }),
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 32,
     fontFamily: Platform.select({
       ios: "System",
       android: "Roboto",

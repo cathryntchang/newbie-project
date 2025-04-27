@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,77 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
+import { createNewSurvey } from "./firebase/firebase";
 
 export default function CreateSurveyScreen() {
+  const [title, setTitle] = useState("");
+  const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
+  const [questions, setQuestions] = useState([
+    { questionText: "", order: 1 },
+    { questionText: "", order: 2 }, // For links/attachments
+  ]);
+  const [showAddPeople, setShowAddPeople] = useState(false);
+  const [newInvitee, setNewInvitee] = useState("");
+
+  const handleAddQuestion = () => {
+    setQuestions([
+      ...questions,
+      { questionText: "", order: questions.length + 1 }
+    ]);
+  };
+
+  const handleQuestionChange = (text: string, index: number) => {
+    const newQuestions = [...questions];
+    newQuestions[index].questionText = text;
+    setQuestions(newQuestions);
+  };
+
+  const handleAddInvitee = () => {
+    if (newInvitee.trim()) {
+      setInvitedUsers([...invitedUsers, newInvitee.trim()]);
+      setNewInvitee("");
+    }
+  };
+
+  const handleRemoveInvitee = (index: number) => {
+    const newInvitedUsers = [...invitedUsers];
+    newInvitedUsers.splice(index, 1);
+    setInvitedUsers(newInvitedUsers);
+  };
+
+  const handleSave = async () => {
+    if (!title.trim()) {
+      Alert.alert("Error", "Please enter a project title");
+      return;
+    }
+
+    if (questions.some(q => !q.questionText.trim())) {
+      Alert.alert("Error", "Please fill in all questions");
+      return;
+    }
+
+    try {
+      // For now hardcoding Daymi's company ID - in real app would get from auth context
+      const companyId = "LEyaRS2Mv7CLzP20K0Pe"; // TODO: Get from auth context
+      await createNewSurvey(
+        companyId,
+        title.trim(),
+        invitedUsers,
+        questions.filter(q => q.questionText.trim()) // Only save non-empty questions
+      );
+      router.back();
+    } catch (error: any) {
+      console.error("Error saving survey:", error);
+      const errorMessage = error.message === 'Company not found' 
+        ? "Company not found. Please check your company ID."
+        : "Failed to save survey. Please try again.";
+      Alert.alert("Error", errorMessage);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -23,11 +90,7 @@ export default function CreateSurveyScreen() {
         <Text style={styles.headerTitle}>Create Metric Survey</Text>
         <TouchableOpacity 
           style={styles.saveButton}
-          onPress={() => {
-            // Handle save
-            console.log("Save pressed");
-            router.back();
-          }}
+          onPress={handleSave}
         >
           <Text style={styles.saveButtonText}>Save</Text>
         </TouchableOpacity>
@@ -39,70 +102,68 @@ export default function CreateSurveyScreen() {
             style={styles.titleInput}
             placeholder="Project Title*"
             placeholderTextColor="#999"
+            value={title}
+            onChangeText={setTitle}
           />
         </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.contextInput}
-            placeholder="Give context here..."
-            placeholderTextColor="#999"
-            multiline
-          />
-          <Text style={styles.helperText}>
-            Include your goals, why you want this feature, etc
-          </Text>
-        </View>
-
-        <TouchableOpacity style={styles.addPeopleButton}>
+        <TouchableOpacity 
+          style={styles.addPeopleButton}
+          onPress={() => setShowAddPeople(!showAddPeople)}
+        >
           <Text style={styles.addPeopleIcon}>👤</Text>
-          <Text style={styles.addPeopleText}>+ Add people</Text>
+          <Text style={styles.addPeopleText}>
+            {invitedUsers.length ? `${invitedUsers.length} people added` : "+ Add people"}
+          </Text>
         </TouchableOpacity>
 
-        <View style={styles.timeInput}>
-          <TextInput
-            style={styles.durationInput}
-            placeholder="10 or 20 minutes"
-            placeholderTextColor="#999"
-          />
-        </View>
+        {showAddPeople && (
+          <View style={styles.inviteSection}>
+            <View style={styles.addInviteeContainer}>
+              <TextInput
+                style={styles.inviteeInput}
+                placeholder="Enter username"
+                value={newInvitee}
+                onChangeText={setNewInvitee}
+                onSubmitEditing={handleAddInvitee}
+              />
+              <TouchableOpacity 
+                style={styles.addInviteeButton}
+                onPress={handleAddInvitee}
+              >
+                <Text>Add</Text>
+              </TouchableOpacity>
+            </View>
+            {invitedUsers.map((user, index) => (
+              <View key={index} style={styles.inviteeItem}>
+                <Text>{user}</Text>
+                <TouchableOpacity onPress={() => handleRemoveInvitee(index)}>
+                  <Text style={styles.removeInviteeButton}>×</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
 
-        <View style={styles.dateContainer}>
-          <TouchableOpacity style={styles.dateInput}>
-            <Text style={styles.dateText}>Start date</Text>
-            <Text style={styles.clockIcon}>🕐</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.dateInput}>
-            <Text style={styles.dateText}>End date</Text>
-            <Text style={styles.clockIcon}>🕐</Text>
-          </TouchableOpacity>
-        </View>
+        {questions.map((question, index) => (
+          <View key={index} style={styles.questionContainer}>
+            <View style={styles.questionDot} />
+            <TextInput
+              style={styles.questionInput}
+              placeholder={index === 1 ? "Insert Links to Figma, Presentation, jpg, png" : `Question ${index + 1}`}
+              placeholderTextColor="#999"
+              value={question.questionText}
+              onChangeText={(text) => handleQuestionChange(text, index)}
+              multiline
+            />
+          </View>
+        ))}
 
-        <View style={styles.questionContainer}>
-          <View style={styles.questionDot} />
-          <TextInput
-            style={styles.questionInput}
-            placeholder="Question 1"
-            placeholderTextColor="#999"
-          />
-        </View>
-
-        <View style={styles.questionContainer}>
-          <View style={styles.questionDot} />
-          <TextInput
-            style={styles.questionInput}
-            placeholder="Insert Links to Figma, Presentation, jpg, png"
-            placeholderTextColor="#999"
-          />
-        </View>
-
-        <TouchableOpacity style={styles.addQuestionButton}>
+        <TouchableOpacity 
+          style={styles.addQuestionButton}
+          onPress={handleAddQuestion}
+        >
           <Text style={styles.addQuestionText}>+ Add Question</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.pasteQuestionsButton}>
-          <Text style={styles.pasteIcon}>📋</Text>
-          <Text style={styles.pasteText}>Paste Defined Questions</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -251,5 +312,42 @@ const styles = StyleSheet.create({
   pasteText: {
     color: "#666",
     fontSize: 16,
+  },
+  inviteSection: {
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+  },
+  addInviteeContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  inviteeInput: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 8,
+    borderRadius: 4,
+  },
+  addInviteeButton: {
+    backgroundColor: '#446388',
+    padding: 8,
+    borderRadius: 4,
+    justifyContent: 'center',
+  },
+  inviteeItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 8,
+    borderRadius: 4,
+    marginTop: 8,
+  },
+  removeInviteeButton: {
+    color: '#ff4444',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 }); 

@@ -52,7 +52,7 @@ export const HomeScreen = () => {
               <View style={styles.buttonContainer}>
                 <StyledButton 
                   title="Login as a User" 
-                  onPress={() => router.push("/login")}
+                  onPress={() => router.push("/user-login")}
                 />
                 <StyledButton 
                   title="Company" 

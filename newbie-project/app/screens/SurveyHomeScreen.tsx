@@ -35,7 +35,7 @@ export const SurveyHomeScreen = () => {
             </View>
             <View style={styles.headerIcons}>
               <TouchableOpacity style={styles.iconButton}>
-                <Image source={{ uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/fff69793b062868a58ca16eb5d1d49dbe8d17fa9?placeholderIfAbsent=true" }} style={styles.icon} />
+                <Image source={require('../../assets/images/metric_daymiProfile.png')} style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton}>
                 <Image source={{ uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/76859715bf8d373a6bca31bba7e53d0acf5fa3e0?placeholderIfAbsent=true" }} style={styles.icon} />
