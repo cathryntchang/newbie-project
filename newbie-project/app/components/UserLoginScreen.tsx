@@ -39,8 +39,8 @@ export const UserLoginScreen = () => {
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
-        // For now, route to survey-home. This will be updated when the user-specific screen is created
-        router.push("/survey-home");
+        // Navigate to user home page after successful login
+        router.replace("/(auth)/user-home");
       } else {
         Alert.alert(
           "Invalid Username",
