@@ -18,28 +18,32 @@ export default function SurveyHomeScreen() {
       title: "Tagging Feature",
       description: "A sales presentation with a potential client. The meeting is set to take place in London, and the appli...",
       peopleCount: 128,
-      date: "This month, April 2025"
+      date: "This month, April 2025",
+      borderColor: "#B6B97A"
     },
     {
       id: 2,
       title: "Conversational Journaling Feature",
       description: "A sales presentation with a potential client. The meeting is set to take place in London, and the appli...",
       peopleCount: 128,
-      date: "Last month, March 2025"
+      date: "Last month, March 2025",
+      borderColor: "#B6A7E6"
     },
     {
       id: 3,
       title: "Daily Summary Feature",
       description: "A sales presentation with a potential client. The meeting is set to take place in London, and the appli...",
       peopleCount: 128,
-      date: ""
+      date: "Last month, March 2025",
+      borderColor: "#7AD6B9"
     },
     {
       id: 4,
       title: "Context-Aware Follow-Ups Feature",
       description: "A sales presentation with a potential client. The meeting is set to take place in London, and the appli...",
       peopleCount: 128,
-      date: ""
+      date: "Last month, March 2025",
+      borderColor: "#E6A7A7"
     }
   ];
 
@@ -62,32 +66,44 @@ export default function SurveyHomeScreen() {
           </View>
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            {surveys.map((survey, index) => (
-              <View key={survey.id} style={[styles.surveyCard, index > 0 && { marginTop: 16 }]}>
+            <Text style={styles.sectionHeader}>This month, <Text style={styles.sectionHeaderBold}>April 2025</Text></Text>
+            {surveys.filter(s => s.date === "This month, April 2025").map((survey, index) => (
+              <View key={survey.id} style={[styles.surveyCard, { borderColor: survey.borderColor }]}> 
                 <View style={styles.surveyHeader}>
-                  <View style={styles.peopleCount}>
-                    <Text style={styles.peopleIcon}>👥</Text>
-                    <Text style={styles.peopleText}>{survey.peopleCount} people surveyed</Text>
-                  </View>
+                  <Text style={styles.surveyPeople}><Text style={styles.surveyPeopleIcon}>📦</Text> <Text style={styles.surveyPeopleText}>{survey.peopleCount} people surveyed</Text></Text>
                   <TouchableOpacity style={styles.moreButton}>
                     <Text style={styles.iconText}>⋮</Text>
                   </TouchableOpacity>
                 </View>
-
                 <Text style={styles.surveyTitle}>{survey.title}</Text>
                 <Text style={styles.surveyDescription}>{survey.description}</Text>
-
                 <TouchableOpacity 
                   style={styles.metricsButton}
-                  onPress={() => router.push("/survey-summary")}
+                  onPress={() => router.push("../screens/MetricScreen")}
                 >
                   <Text style={styles.metricsButtonText}>See Metrics</Text>
-                  <Text style={styles.metricsIcon}>+</Text>
+                  <Text style={styles.metricsButtonIcon}>＋</Text>
                 </TouchableOpacity>
-
-                {survey.date && (
-                  <Text style={styles.dateText}>{survey.date}</Text>
-                )}
+              </View>
+            ))}
+            <Text style={styles.sectionHeaderLast}>Last month, <Text style={styles.sectionHeaderBold}>March 2025</Text></Text>
+            {surveys.filter(s => s.date === "Last month, March 2025").map((survey, index) => (
+              <View key={survey.id} style={[styles.surveyCard, { borderColor: survey.borderColor }]}> 
+                <View style={styles.surveyHeader}>
+                  <Text style={styles.surveyPeople}><Text style={styles.surveyPeopleIcon}>📦</Text> <Text style={styles.surveyPeopleText}>{survey.peopleCount} people surveyed</Text></Text>
+                  <TouchableOpacity style={styles.moreButton}>
+                    <Text style={styles.iconText}>⋮</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.surveyTitle}>{survey.title}</Text>
+                <Text style={styles.surveyDescription}>{survey.description}</Text>
+                <TouchableOpacity 
+                  style={styles.metricsButton}
+                  onPress={() => router.push("../screens/MetricScreen")}
+                >
+                  <Text style={styles.metricsButtonText}>See Metrics</Text>
+                  <Text style={styles.metricsButtonIcon}>＋</Text>
+                </TouchableOpacity>
               </View>
             ))}
           </ScrollView>
@@ -96,17 +112,17 @@ export default function SurveyHomeScreen() {
             <TouchableOpacity style={styles.navButton}>
               <Text style={styles.navIcon}>🏷️</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.navButton}>
-              <Text style={styles.navIcon}>📊</Text>
-              <Text style={styles.navText}>Surveys</Text>
+            <TouchableOpacity style={styles.navButtonActive}>
+              <Text style={styles.navIcon}>👜</Text>
+              <Text style={styles.navTextActive}>Surveys</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.addButton}
               onPress={() => {
-                router.push("/create-survey");
+                router.push("../screens/CreateSurveyScreen");
               }}
             >
-              <Text style={styles.addButtonText}>+</Text>
+              <Text style={styles.addButtonText}>＋</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -139,7 +155,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#000000",
+    color: "#232B3A",
     marginTop: 24,
   },
   headerButtons: {
@@ -156,12 +172,30 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
+  sectionHeader: {
+    fontSize: 16,
+    color: "#6B6B6B",
+    marginTop: 8,
+    marginBottom: 4,
+    fontWeight: "400",
+  },
+  sectionHeaderLast: {
+    fontSize: 16,
+    color: "#bbb",
+    marginTop: 16,
+    marginBottom: 4,
+    fontWeight: "400",
+  },
+  sectionHeaderBold: {
+    fontWeight: "700",
+    color: "#232B3A",
+  },
   surveyCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#E5E5E5",
+    marginBottom: 16,
   },
   surveyHeader: {
     flexDirection: 'row',
@@ -169,25 +203,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  peopleCount: {
+  surveyPeople: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
-  peopleIcon: {
+  surveyPeopleIcon: {
     fontSize: 16,
   },
-  peopleText: {
+  surveyPeopleText: {
     fontSize: 14,
-    color: "#666666",
+    color: "#bbb",
+    fontWeight: "400",
   },
   moreButton: {
     padding: 4,
   },
   surveyTitle: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "#000000",
+    fontWeight: "700",
+    color: "#232B3A",
     marginBottom: 8,
   },
   surveyDescription: {
@@ -196,14 +230,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   metricsButton: {
-    backgroundColor: "#446388",
+    backgroundColor: "#6C4DFF",
     borderRadius: 8,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'flex-end',
+    marginTop: 8,
   },
   metricsButtonText: {
     color: "#FFFFFF",
@@ -211,9 +246,10 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginRight: 4,
   },
-  metricsIcon: {
+  metricsButtonIcon: {
     color: "#FFFFFF",
     fontSize: 16,
+    marginLeft: 2,
   },
   dateText: {
     fontSize: 14,
@@ -228,9 +264,22 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#E5E5E5",
     backgroundColor: "#FFFFFF",
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    marginHorizontal: 8,
+    marginBottom: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
   },
   navButton: {
     alignItems: 'center',
+    flex: 1,
+  },
+  navButtonActive: {
+    alignItems: 'center',
+    flex: 1,
   },
   navIcon: {
     fontSize: 24,
@@ -239,17 +288,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#000000",
     marginTop: 4,
+    fontWeight: "400",
+  },
+  navTextActive: {
+    fontSize: 14,
+    color: "#232B3A",
+    marginTop: 4,
+    fontWeight: "700",
   },
   addButton: {
-    backgroundColor: "#000000",
+    backgroundColor: "#232B3A",
     width: 48,
     height: 48,
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: 8,
+    marginRight: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
   },
   addButtonText: {
     color: "#FFFFFF",
-    fontSize: 24,
+    fontSize: 28,
+    fontWeight: "700",
+    marginTop: -2,
   },
 }); 

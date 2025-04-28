@@ -26,7 +26,7 @@ const buttonWidth = Math.min(width - 40, 400);
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#446388",
+    backgroundColor: "#000000",
     borderRadius: 15,
     paddingHorizontal: 24,
     paddingVertical: 16,

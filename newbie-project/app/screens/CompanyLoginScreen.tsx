@@ -12,8 +12,8 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
-import { StyledInput } from "./StyledInput";
-import { StyledButton } from "./StyledButton";
+import { StyledInput } from "../components/StyledInput";
+import { StyledButton } from "../components/StyledButton";
 import { router } from "expo-router";
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
