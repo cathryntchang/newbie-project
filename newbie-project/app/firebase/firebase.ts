@@ -236,8 +236,9 @@ export const createNewSurvey = async (
       surveys: arrayUnion(surveyId)
     });
 
-    // Add survey to each valid user's collection
+    // Add survey to each valid user's document and collection
     const addToUserPromises = validUsers.map(async (user) => {
+      // Add survey to user's surveys subcollection
       const userSurveyRef = doc(db, `users/${user.id}/surveys/${surveyId}`);
       await setDoc(userSurveyRef, {
         id: surveyId,
@@ -245,6 +246,12 @@ export const createNewSurvey = async (
         title,
         createdAt: new Date().toISOString(),
         status: 'pending'
+      });
+
+      // Add survey ID to user's surveys array in their document
+      const userRef = doc(db, 'users', user.id);
+      await updateDoc(userRef, {
+        surveys: arrayUnion(surveyId)
       });
     });
 
@@ -287,6 +294,7 @@ export const getUserSurveys = async (username: string) => {
       throw new Error('User not found');
     }
 
+    // Get all surveys from user's surveys subcollection
     const userSurveysRef = collection(db, `users/${user.id}/surveys`);
     const querySnapshot = await getDocs(userSurveysRef);
     
