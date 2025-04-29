@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, arrayUnion, query, where } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, arrayUnion, query, where, increment } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import firebaseConfig from '../../keys.json';
 
@@ -14,6 +14,31 @@ const usersRef = collection(db, 'users');
 
 // Fixed company ID for Daymi
 export const DAYMI_COMPANY_ID = 'daymi_company';
+
+// Fixed user IDs - using existing document IDs
+export const USER_IDS = {
+  CATHRYN: '254LZeoQ1x1TBAgpLWKk',
+  DANICA: 'RDjB9obUCas4Nwuez12K',
+  CHRISTY: 'TwFjhnxVXfDOko15058B'
+};
+
+// Initialize login counts for users
+const initLoginCounts = async () => {
+  try {
+    // Initialize login counts for all users
+    await Promise.all([
+      setDoc(doc(usersRef, USER_IDS.CATHRYN), { loginCount: 0 }, { merge: true }),
+      setDoc(doc(usersRef, USER_IDS.DANICA), { loginCount: 0 }, { merge: true }),
+      setDoc(doc(usersRef, USER_IDS.CHRISTY), { loginCount: 0 }, { merge: true })
+    ]);
+    console.log('Login counts initialized');
+  } catch (error) {
+    console.error('Error initializing login counts:', error);
+  }
+};
+
+// Run initialization
+initLoginCounts();
 
 // Survey functions
 export const createSurvey = async (companyId: string, surveyData: {
@@ -33,19 +58,6 @@ export const createSurvey = async (companyId: string, surveyData: {
   });
   
   return surveyRef.id;
-};
-
-// User functions
-export const createUser = async (userData: {
-  username: string;
-  surveyAccess: string[];
-}) => {
-  const userRef = doc(usersRef);
-  await setDoc(userRef, {
-    ...userData,
-    id: userRef.id
-  });
-  return userRef.id;
 };
 
 export const addSurveyAnswer = async (

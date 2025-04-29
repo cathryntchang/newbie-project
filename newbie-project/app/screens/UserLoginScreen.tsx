@@ -15,7 +15,7 @@ import {
 import { StyledInput } from "../components/StyledInput";
 import { StyledButton } from "../components/StyledButton";
 import { router } from "expo-router";
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
 const { width } = Dimensions.get("window");
@@ -34,18 +34,39 @@ export const UserLoginScreen = () => {
       return;
     }
 
+    // Only allow Cathryn, Danica, or Christy as valid usernames (case-sensitive)
+    const validUsernames = ['Cathryn', 'Danica', 'Christy'];
+    if (!validUsernames.includes(username)) {
+      Alert.alert(
+        "Invalid Username",
+        "Please enter a valid username (Cathryn, Danica, or Christy).",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     try {
       const usersRef = collection(db, 'users');
-      const q = query(usersRef, where("username", "==", username.trim()));
+      const q = query(usersRef, where("username", "==", username));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
+        // Get the user document
+        const userDoc = querySnapshot.docs[0];
+        
+        // Increment login count
+        await updateDoc(doc(usersRef, userDoc.id), {
+          loginCount: increment(1)
+        });
+
+        console.log(`${username} logged in. Login count incremented.`);
+        
         // Navigate to user home page after successful login
         router.replace("../screens/UserHomeScreen");
       } else {
         Alert.alert(
-          "Invalid Username",
-          "Please enter a valid username (Danica, Christy, or Cathryn).",
+          "Error",
+          "User account not found. Please contact support.",
           [{ text: "OK" }]
         );
       }
