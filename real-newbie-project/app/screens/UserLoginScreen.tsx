@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { StyledInput } from "../components/StyledInput";
 import { StyledButton } from "../components/StyledButton";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import { collection, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
