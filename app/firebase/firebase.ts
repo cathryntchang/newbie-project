@@ -12,19 +12,8 @@ const auth = getAuth(app);
 const companiesRef = collection(db, 'companies');
 const usersRef = collection(db, 'users');
 
-// Company functions
-export const createCompany = async (companyData: {
-  companyName: string;
-  id?: string;
-}) => {
-  const companyRef = doc(companiesRef);
-  await setDoc(companyRef, {
-    ...companyData,
-    id: companyRef.id,
-    surveys: []
-  });
-  return companyRef.id;
-};
+// Fixed company ID for Daymi
+export const DAYMI_COMPANY_ID = 'daymi_company';
 
 // Survey functions
 export const createSurvey = async (companyId: string, surveyData: {

@@ -33,17 +33,27 @@ export const CompanyLoginScreen = () => {
       return;
     }
 
+    // Only allow "Daymi" as a valid company name
+    if (companyName.trim().toLowerCase() !== "daymi") {
+      Alert.alert(
+        "Invalid Company Name",
+        "Only 'Daymi' is a valid company name.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     try {
       const companiesRef = collection(db, 'companies');
-      const q = query(companiesRef, where("name", "==", companyName.trim()));
+      const q = query(companiesRef, where("name", "==", "Daymi"));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
         router.push("/survey-home");
       } else {
         Alert.alert(
-          "Invalid Company Name",
-          "Please enter the correct company name.",
+          "Error",
+          "Company account not found. Please contact support.",
           [{ text: "OK" }]
         );
       }
