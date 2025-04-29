@@ -138,10 +138,31 @@ export const getCompanyById = async (companyId: string) => {
   }
 };
 
+// Add function to get user by username
+export const getUserByUsername = async (username: string) => {
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('username', '==', username));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      return null;
+    }
+    
+    return {
+      id: querySnapshot.docs[0].id,
+      ...querySnapshot.docs[0].data()
+    };
+  } catch (error) {
+    console.error('Error getting user by username:', error);
+    throw error;
+  }
+};
+
 export const createNewSurvey = async (
   companyId: string,
   title: string,
-  invitedUsers: string[],
+  invitedUsers: string[], // These are usernames
   questions: { questionText: string, order: number }[]
 ) => {
   try {
@@ -149,6 +170,23 @@ export const createNewSurvey = async (
     const company = await getCompanyById(companyId);
     if (!company) {
       throw new Error('Company not found');
+    }
+
+    // Get user IDs for all invited users
+    const userPromises = invitedUsers.map(username => getUserByUsername(username));
+    const users = await Promise.all(userPromises);
+    
+    // Filter out any usernames that weren't found
+    const validUsers = users.filter((user): user is NonNullable<typeof user> => user !== null);
+    
+    if (validUsers.length === 0) {
+      throw new Error('No valid users found');
+    }
+
+    if (validUsers.length !== invitedUsers.length) {
+      const foundUsernames = validUsers.map(user => user.username);
+      const missingUsernames = invitedUsers.filter(username => !foundUsernames.includes(username));
+      console.warn('Some users not found:', missingUsernames);
     }
 
     // Create a new survey document
@@ -159,8 +197,13 @@ export const createNewSurvey = async (
     await setDoc(surveyDoc, {
       id: surveyId,
       title,
-      invitedUsers,
-      createdAt: new Date().toISOString()
+      invitedUsers: validUsers.map(user => ({
+        id: user.id,
+        username: user.username
+      })),
+      createdAt: new Date().toISOString(),
+      companyId,
+      status: 'pending'
     });
 
     // Add questions as separate documents
@@ -176,7 +219,7 @@ export const createNewSurvey = async (
     await setDoc(
       doc(db, `companies/${companyId}/surveys/${surveyId}/metadata`, 'invites'),
       {
-        people: invitedUsers
+        people: validUsers.map(user => user.id)
       }
     );
 
@@ -187,15 +230,72 @@ export const createNewSurvey = async (
       }
     );
 
-    // Update company's surveys array - make sure to initialize if it doesn't exist
+    // Update company's surveys array
     const companyRef = doc(db, 'companies', companyId);
     await updateDoc(companyRef, {
       surveys: arrayUnion(surveyId)
     });
 
+    // Add survey to each valid user's collection
+    const addToUserPromises = validUsers.map(async (user) => {
+      const userSurveyRef = doc(db, `users/${user.id}/surveys/${surveyId}`);
+      await setDoc(userSurveyRef, {
+        id: surveyId,
+        companyId,
+        title,
+        createdAt: new Date().toISOString(),
+        status: 'pending'
+      });
+    });
+
+    await Promise.all(addToUserPromises);
+
     return surveyId;
   } catch (error) {
     console.error('Error creating survey:', error);
+    throw error;
+  }
+};
+
+export const searchUsers = async (searchTerm: string) => {
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(
+      usersRef,
+      where('name', '>=', searchTerm),
+      where('name', '<=', searchTerm + '\uf8ff')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      name: doc.data().name,
+      email: doc.data().email
+    }));
+  } catch (error) {
+    console.error('Error searching users:', error);
+    throw error;
+  }
+};
+
+// Update getUserSurveys to work with username
+export const getUserSurveys = async (username: string) => {
+  try {
+    // First get the user document
+    const user = await getUserByUsername(username);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const userSurveysRef = collection(db, `users/${user.id}/surveys`);
+    const querySnapshot = await getDocs(userSurveysRef);
+    
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error fetching user surveys:', error);
     throw error;
   }
 };

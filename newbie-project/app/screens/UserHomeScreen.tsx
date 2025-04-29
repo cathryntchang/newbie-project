@@ -80,14 +80,6 @@ export default function UserHome() {
           ))}
         </View>
       </ScrollView>
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}><Text style={styles.navIcon}>🏠</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}><Text style={styles.navIcon}>🔍</Text></TouchableOpacity>
-        <TouchableOpacity style={[styles.navItem, styles.centerNavItem]}><Text style={styles.centerNavIcon}>🔗</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}><Text style={styles.navIcon}>👤</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}><Text style={styles.navIcon}>⚙️</Text></TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
@@ -122,10 +114,5 @@ const styles = StyleSheet.create({
   companyInfo: { flex: 1 },
   companyName: { fontWeight: "600", fontSize: 16, color: "#232B3A" },
   companyDate: { color: "#6B6B6B", fontSize: 13 },
-  companyDuration: { color: "#232B3A", fontWeight: "600", fontSize: 15 },
-  bottomNav: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: "#E9ECF6", paddingVertical: 12 },
-  navItem: { padding: 8 },
-  navIcon: { fontSize: 24 },
-  centerNavItem: { backgroundColor: "#4B2BAE", borderRadius: 32, padding: 16, marginTop: -32 },
-  centerNavIcon: { color: "#fff", fontSize: 24 },
+  companyDuration: { color: "#232B3A", fontWeight: "600", fontSize: 15 }
 }); 

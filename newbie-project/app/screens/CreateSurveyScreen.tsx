@@ -10,14 +10,14 @@ import {
   Alert,
 } from "react-native";
 import { router } from "expo-router";
-import { createNewSurvey } from "../firebase/firebase";
+import { createNewSurvey, getUserByUsername } from "../firebase/firebase";
 
 export default function CreateSurveyScreen() {
   const [title, setTitle] = useState("");
+  const [context, setContext] = useState("");
   const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
   const [questions, setQuestions] = useState([
-    { questionText: "", order: 1 },
-    { questionText: "", order: 2 }, // For links/attachments
+    { questionText: "", order: 1 }
   ]);
   const [showAddPeople, setShowAddPeople] = useState(false);
   const [newInvitee, setNewInvitee] = useState("");
@@ -35,10 +35,24 @@ export default function CreateSurveyScreen() {
     setQuestions(newQuestions);
   };
 
-  const handleAddInvitee = () => {
-    if (newInvitee.trim()) {
-      setInvitedUsers([...invitedUsers, newInvitee.trim()]);
-      setNewInvitee("");
+  const handleAddInvitee = async () => {
+    if (!newInvitee.trim()) return;
+
+    try {
+      const user = await getUserByUsername(newInvitee.trim());
+      if (user) {
+        if (invitedUsers.includes(newInvitee.trim())) {
+          Alert.alert("Already Added", "This user has already been added to the survey.");
+        } else {
+          setInvitedUsers([...invitedUsers, newInvitee.trim()]);
+          setNewInvitee("");
+        }
+      } else {
+        Alert.alert("Invalid Username", "Please enter a valid username.");
+      }
+    } catch (error) {
+      console.error("Error checking username:", error);
+      Alert.alert("Error", "Failed to verify username. Please try again.");
     }
   };
 
@@ -48,14 +62,35 @@ export default function CreateSurveyScreen() {
     setInvitedUsers(newInvitedUsers);
   };
 
+  const handleRemoveQuestion = (indexToRemove: number) => {
+    if (questions.length > 1) {
+      const newQuestions = questions.filter((_, index) => index !== indexToRemove);
+      // Update order numbers
+      const updatedQuestions = newQuestions.map((q, index) => ({
+        ...q,
+        order: index + 1
+      }));
+      setQuestions(updatedQuestions);
+    } else {
+      Alert.alert("Cannot remove", "You must have at least one question");
+    }
+  };
+
   const handleSave = async () => {
+    // Validation checks
     if (!title.trim()) {
       Alert.alert("Error", "Please enter a project title");
       return;
     }
 
-    if (questions.some(q => !q.questionText.trim())) {
-      Alert.alert("Error", "Please fill in all questions");
+    if (invitedUsers.length === 0) {
+      Alert.alert("Error", "Please add at least one person to the survey");
+      return;
+    }
+
+    const hasValidQuestion = questions.some(q => q.questionText.trim());
+    if (!hasValidQuestion) {
+      Alert.alert("Error", "Please add at least one question with content");
       return;
     }
 
@@ -101,21 +136,32 @@ export default function CreateSurveyScreen() {
           <TextInput
             style={styles.titleInput}
             placeholder="Project Title*"
-            placeholderTextColor="#999"
+            placeholderTextColor="#A0A0A0"
             value={title}
             onChangeText={setTitle}
           />
-        </View>
 
-        <TouchableOpacity 
-          style={styles.addPeopleButton}
-          onPress={() => setShowAddPeople(!showAddPeople)}
-        >
-          <Text style={styles.addPeopleIcon}>👤</Text>
-          <Text style={styles.addPeopleText}>
-            {invitedUsers.length ? `${invitedUsers.length} people added` : "+ Add people"}
-          </Text>
-        </TouchableOpacity>
+          <TextInput
+            style={styles.contextInput}
+            placeholder="Give context here..."
+            placeholderTextColor="#A0A0A0"
+            value={context}
+            onChangeText={setContext}
+            multiline
+            numberOfLines={3}
+          />
+          <Text style={styles.helperText}>Include your goals, why you want this feature, etc</Text>
+
+          <TouchableOpacity 
+            style={styles.addPeopleButton}
+            onPress={() => setShowAddPeople(!showAddPeople)}
+          >
+            <Text style={styles.addPeopleIcon}>👤</Text>
+            <Text style={styles.addPeopleText}>
+              {invitedUsers.length ? `${invitedUsers.length} people added` : "+ Add people*"}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {showAddPeople && (
           <View style={styles.inviteSection}>
@@ -145,19 +191,30 @@ export default function CreateSurveyScreen() {
           </View>
         )}
 
-        {questions.map((question, index) => (
-          <View key={index} style={styles.questionContainer}>
-            <View style={styles.questionDot} />
-            <TextInput
-              style={styles.questionInput}
-              placeholder={index === 1 ? "Insert Links to Figma, Presentation, jpg, png" : `Question ${index + 1}`}
-              placeholderTextColor="#999"
-              value={question.questionText}
-              onChangeText={(text) => handleQuestionChange(text, index)}
-              multiline
-            />
-          </View>
-        ))}
+        <View style={styles.questionsSection}>
+          <Text style={styles.sectionLabel}>Questions*</Text>
+          {questions.map((question, index) => (
+            <View key={index} style={styles.questionWrapper}>
+              <View style={styles.questionContainer}>
+                <View style={styles.questionDot} />
+                <TextInput
+                  style={styles.questionInput}
+                  placeholder={`Question ${index + 1}*`}
+                  placeholderTextColor="#A0A0A0"
+                  value={question.questionText}
+                  onChangeText={(text) => handleQuestionChange(text, index)}
+                  multiline
+                />
+                <TouchableOpacity 
+                  onPress={() => handleRemoveQuestion(index)}
+                  style={styles.removeQuestionButton}
+                >
+                  <Text style={styles.removeQuestionText}>×</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </View>
 
         <TouchableOpacity 
           style={styles.addQuestionButton}
@@ -244,15 +301,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    minHeight: 60,
+    minHeight: 80,
     backgroundColor: "#FAFAFB",
     color: "#181818",
-    marginBottom: 16,
+    marginBottom: 8,
+    textAlignVertical: "top",
   },
   helperText: {
     fontSize: 14,
-    color: "#999",
-    marginTop: 4,
+    color: "#A0A0A0",
+    marginBottom: 16,
+    marginLeft: 4,
   },
   addPeopleButton: {
     flexDirection: "row",
@@ -314,6 +373,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#A0A0A0",
   },
+  questionWrapper: {
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
   questionContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -322,7 +385,6 @@ const styles = StyleSheet.create({
     borderColor: "#ECECEC",
     borderRadius: 10,
     backgroundColor: "#FAFAFB",
-    marginBottom: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
@@ -352,28 +414,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   addQuestionText: {
-    color: "#A0A0A0",
-    fontSize: 16,
-    fontWeight: "400",
-  },
-  pasteQuestionsButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "#ECECEC",
-    borderRadius: 10,
-    backgroundColor: "#FAFAFB",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginHorizontal: 20,
-    marginBottom: 24,
-  },
-  pasteIcon: {
-    fontSize: 20,
-    color: "#A0A0A0",
-  },
-  pasteText: {
     color: "#A0A0A0",
     fontSize: 16,
     fontWeight: "400",
@@ -414,5 +454,24 @@ const styles = StyleSheet.create({
     color: '#ff4444',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  removeQuestionButton: {
+    padding: 4,
+    marginLeft: 'auto',
+  },
+  removeQuestionText: {
+    fontSize: 24,
+    color: "#FF4444",
+    fontWeight: "400",
+  },
+  questionsSection: {
+    marginTop: 24,
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#181818",
+    marginLeft: 20,
+    marginBottom: 12,
   },
 }); 
